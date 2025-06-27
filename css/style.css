@@ -1,16 +1,64 @@
-/* 1. General Styling & Theming */
+/* css/style.css */
+
+/* --- FONT IMPORT --- */
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+/* --- THEME DEFINITIONS --- */
+
+/* 1. Base Variables & Light Theme (Default) */
 :root {
+    --font-family: 'Lilita One', cursive;
+    --font-weight-normal: 400;
+    --font-weight-bold: 400;
+
+    /* Light Theme Palette */
     --primary-bg: #f4f7f9;
+    --controls-bg: #ffffff;
     --binder-bg: #ffffff;
     --accent-color: #007bff;
+    --accent-hover: #0056b3;
     --highlight-color: #ffc107;
     --text-color: #333;
+    --text-on-accent: #ffffff;
+    --text-on-highlight: #333;
+    --text-subtle: #6c757d;
     --border-color: #dee2e6;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* 2. Dark Mode Theme */
+html[data-theme='dark'] {
+    --primary-bg: #121212;
+    --controls-bg: #1e1e1e;
+    --binder-bg: #2a2a2a;
+    --accent-color: #0d6efd;
+    --accent-hover: #0b5ed7;
+    --text-color: #e9ecef;
+    --text-subtle: #adb5bd;
+    --border-color: #495057;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* 3. Retro Mode Theme */
+html[data-theme='retro'] {
+    --primary-bg: #2C3639;
+    --gradient-end: #4A405A;
+    --controls-bg: #3F4E4F;
+    --binder-bg: #FDF6E3;
+    --accent-color: #D83F31;
+    --accent-hover: #C12F21;
+    --highlight-color: #EE9322;
+    --text-color: #3A3845;
+    --text-on-highlight: #2C3639;
+    --text-subtle: #839496;
+    --border-color: #D3CBB8;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+/* --- BASE STYLES --- */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-family);
     background-color: var(--primary-bg);
     color: var(--text-color);
     margin: 0;
@@ -21,208 +69,99 @@ body {
     min-height: 100vh;
     padding: 1rem;
     box-sizing: border-box;
+    transition: background-color 0.3s ease;
 }
 
-/* 2. Main App Container & Controls */
+html[data-theme='retro'] body {
+    background-image: linear-gradient(135deg, var(--primary-bg) 0%, var(--gradient-end) 100%);
+    background-attachment: fixed;
+    background-size: cover;
+}
+
 .app-container {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 1.5rem;
 }
 
 .controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-    background-color: var(--binder-bg);
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+    background-color: var(--controls-bg);
+    padding: 1rem; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .control-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem; color: var(--text-color);
 }
+html[data-theme='retro'] .control-group { color: var(--binder-bg); }
 
-input[type="number"],
-input[type="search"] {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-    width: 100px;
-    transition: border-color 0.2s;
+input {
+    padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 1rem;
+    background-color: var(--binder-bg); color: var(--text-color); font-family: var(--font-family);
+    transition: border-color 0.2s, background-color 0.3s, color 0.3s;
 }
-
-input[type="number"]:focus,
-input[type="search"]:focus {
-    outline: none;
-    border-color: var(--accent-color);
-}
+input:focus { outline: none; border-color: var(--accent-color); }
 
 button {
     padding: 0.5rem 1rem;
     font-size: 1rem;
-    font-weight: 500;
     background-color: var(--accent-color);
-    color: white;
+    color: var(--text-on-accent);
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-bold);
     transition: background-color 0.2s;
+    
+    /* MODIFIED: Moved this rule here to apply to ALL themes */
+    text-transform: uppercase;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
+/* REMOVED: The redundant theme-specific rule is gone */
+/* html[data-theme='retro'] button { text-transform: uppercase; } */
 
-button:disabled {
-    background-color: #a0a0a0;
-    cursor: not-allowed;
-}
+button:hover { background-color: var(--accent-hover); }
+button:disabled { background-color: var(--text-subtle); color: var(--primary-bg); cursor: not-allowed; opacity: 0.6; }
 
-.error-message {
-    color: #dc3545;
-    font-weight: 500;
-    margin-left: 1rem;
-    display: none;
-}
+.error-message { color: #c13e3e; margin-left: 1rem; display: none; }
+html[data-theme='dark'] .error-message, html[data-theme='retro'] .error-message { color: #f5a69f; }
 
-/* 3. Binder & Slide Layout */
+.theme-switcher { display: flex; gap: 0.5rem; border-left: 2px solid var(--border-color); padding-left: 1rem; margin-left: 0.5rem; }
+.theme-switcher button { border: 2px solid transparent; }
+.theme-switcher button.active { border-color: var(--accent-color); transform: scale(1.1); }
+
+/* Layout Rules for Binder and Slides */
 .binder {
     position: relative;
     width: 100%;
-    min-height: 500px; /* Provides a minimum height */
+    min-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: none; /* Hidden by default */
-    align-items: stretch;
-    justify-content: center;
-    gap: 2rem;
-    padding: 1rem 0;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 1rem 0;
+    gap: 2rem; display: flex; align-items: stretch; justify-content: center;
+    visibility: hidden; opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+.slide.active { visibility: visible; opacity: 1; }
 
-.slide.active {
-    display: flex; /* Visible when active */
-}
-
-/* 4. Page & Slot Styling */
 .page {
-    flex: 1;
-    max-width: 450px;
-    background-color: var(--binder-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
+    flex: 1; max-width: 450px; background-color: var(--binder-bg); border: 1px solid var(--border-color);
+    border-radius: 8px; box-shadow: var(--shadow); padding: 1rem; display: flex; flex-direction: column; overflow-y: auto;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
+.page-placeholder { flex: 1; max-width: 450px; visibility: hidden; }
 
-.page-placeholder {
-    flex: 1;
-    max-width: 450px;
-    visibility: hidden; /* Takes up space but is not visible */
-}
+/* ... (The rest of the styles are correct) ... */
+.page-header { text-align: center; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-subtle); font-weight: var(--font-weight-normal); flex-shrink: 0; }
+.page-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 0.5rem; flex-grow: 1; min-height: 0; }
+.slot { display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 4px; font-weight: var(--font-weight-bold); transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease; font-size: clamp(0.9rem, 2.5vw, 1.3rem); min-height: 25px; }
+.slot.highlight { background-color: var(--highlight-color); transform: scale(1.1); color: var(--text-on-highlight); border-color: var(--highlight-color); }
+.navigation { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-top: 1rem; }
+.slide-counter, .page-footer { color: var(--text-subtle); }
 
-.page-header {
-    text-align: center;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-    color: #6c757d;
-    font-weight: 600;
-}
-
-.page-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 0.5rem;
-    flex-grow: 1;
-}
-
-.slot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    aspect-ratio: 1 / 1; /* Maintain square shape */
-    transition: transform 0.2s ease, background-color 0.3s ease;
-}
-
-.slot.highlight {
-    background-color: var(--highlight-color);
-    transform: scale(1.1);
-    color: #333;
-    border-color: #f9b400;
-}
-
-/* 5. Navigation */
-.navigation {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: -0.5rem; /* Pull navigation closer to binder */
-}
-
-.slide-counter {
-    font-size: 1.1rem;
-    font-weight: 500;
-    min-width: 100px; /* Prevents layout shift */
-    text-align: center;
-}
-
-/* 6. Responsive Design for Mobile */
-@media (max-width: 768px) {
-    .app-container {
-        gap: 1rem;
-    }
-    .slide {
-        flex-direction: column;
-        position: relative; /* Change position for natural flow */
-        gap: 1rem;
-    }
-    .slide.active {
-        display: flex;
-    }
-    .binder {
-        min-height: auto; /* Allow height to be determined by content */
-    }
-    .page, .page-placeholder {
-        max-width: 100%;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .page-placeholder {
-        display: none; /* No need for placeholders on mobile stack */
-    }
-    .controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .control-group {
-        justify-content: space-between;
-    }
-    input[type="number"], input[type="search"] {
-        width: auto;
-        flex-grow: 1;
-    }
-}
+@media (max-width: 768px) { .slide { flex-direction: column; position: relative; } .binder { min-height: auto; } .page, .page-placeholder { max-width: 100%; } .page-placeholder { display: none; } .controls { flex-direction: column; align-items: stretch; } .control-group, .theme-switcher { justify-content: center; } .theme-switcher { border-left: none; border-top: 2px solid var(--border-color); padding-top: 1rem; padding-left: 0; margin-left: 0; } }
+.page-footer { text-align: center; width: 100%; max-width: 600px; margin: 2rem auto 1rem auto; font-size: 0.8rem; opacity: 0.7; line-height: 1.5; }

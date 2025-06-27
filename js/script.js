@@ -2,17 +2,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const generatorForm = document.getElementById('generator-form');
     const totalSlotsInput = document.getElementById('total-slots-input');
-    const searchForm = document.getElementById('search-form');
-    const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
+    // ... (all other existing elements)
     const binder = document.getElementById('binder');
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
     const slideCounter = document.getElementById('slide-counter');
     const errorMessage = document.getElementById('error-message');
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+
+    // ADDED: Theme switcher elements
+    const themeSwitcher = document.getElementById('theme-switcher');
 
     // --- App State ---
     let state = {
+        // ... (existing state)
         totalSlots: 0,
         totalPages: 0,
         totalSlides: 0,
@@ -20,6 +25,35 @@ document.addEventListener('DOMContentLoaded', () => {
         slotsPerSheet: 32,
         slotsPerPage: 16,
     };
+    
+    // --- THEME SWITCHER LOGIC ---
+    const themes = ['light', 'dark', 'retro'];
+    
+    function applyTheme(theme) {
+        if (!themes.includes(theme)) {
+            theme = 'retro'; // Default to retro if invalid theme is passed
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        // Update active button
+        themeSwitcher.querySelectorAll('button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === theme);
+        });
+    }
+    
+    function initTheme() {
+        const savedTheme = localStorage.getItem('binderTheme') || 'retro';
+        applyTheme(savedTheme);
+    }
+    
+    themeSwitcher.addEventListener('click', (e) => {
+        const target = e.target.closest('button');
+        if (target && target.dataset.theme) {
+            const newTheme = target.dataset.theme;
+            localStorage.setItem('binderTheme', newTheme);
+            applyTheme(newTheme);
+        }
+    });
 
     // --- Event Listeners ---
     generatorForm.addEventListener('submit', (e) => {
@@ -36,16 +70,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     searchInput.addEventListener('input', () => {
-        errorMessage.style.display = 'none'; // Hide error on new input
+        errorMessage.style.display = 'none';
     });
 
     prevButton.addEventListener('click', () => navigate(-1));
     nextButton.addEventListener('click', () => navigate(1));
     
-    // --- Initial Generation ---
+    // --- Initializations ---
+    initTheme(); // Initialize theme first
     generateBinder(parseInt(totalSlotsInput.value, 10));
 
     // --- Core Functions ---
+    // ... (The rest of your generateBinder, createPage, navigate, searchForSlot, and updateUI functions remain exactly the same) ...
 
     /**
      * Generates the entire binder structure based on the total number of slots.
@@ -153,44 +189,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function searchForSlot() {
         const slotNumber = parseInt(searchInput.value, 10);
         
-        // Validate input
         if (isNaN(slotNumber) || slotNumber < 1 || slotNumber > state.totalSlots) {
             errorMessage.style.display = 'inline';
             return;
         }
         
-        // 1. Determine which page the number is on
         const pageNum = Math.ceil(slotNumber / state.slotsPerPage);
         
-        // 2. Navigate to the correct slide
-        // Slide 0: Page 1. Slide 1: Pages 2 & 3. Slide 2: Pages 4 & 5...
-        // Slide Index = floor(PageNum / 2)
-        const targetSlideIndex = Math.floor(pageNum / 2); 
         if (pageNum % 2 === 1 && pageNum > 1) {
-           // If it's an odd page (and not page 1), it's on the slide with its preceding even page
            state.currentSlideIndex = Math.ceil((pageNum-1) / 2)
         } else if(pageNum > 1) {
-            // if it is an even page it shares a slide with the next odd page
             state.currentSlideIndex = pageNum / 2
         } else {
-            // Page 1 is on slide 0
             state.currentSlideIndex = 0;
         }
 
         updateUI();
         
-        // 3. Highlight the slot box
-        // First, remove any existing highlight
         const existingHighlight = binder.querySelector('.slot.highlight');
         if (existingHighlight) {
             existingHighlight.classList.remove('highlight');
         }
         
-        // Then, add highlight to the new slot
         const targetSlot = document.getElementById(`slot-${slotNumber}`);
         if (targetSlot) {
             targetSlot.classList.add('highlight');
-            // Scroll to the element if it's off-screen on mobile
             targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
@@ -199,31 +222,25 @@ document.addEventListener('DOMContentLoaded', () => {
      * Updates the entire UI based on the current state.
      */
     function updateUI() {
-        // Update active slide
         const slides = binder.querySelectorAll('.slide');
         slides.forEach((slide, index) => {
             slide.classList.toggle('active', index === state.currentSlideIndex);
         });
 
-        // Update navigation buttons
         prevButton.disabled = state.currentSlideIndex === 0;
         nextButton.disabled = state.currentSlideIndex === state.totalSlides - 1;
         
-        // Enable/disable search
         const hasContent = state.totalSlots > 0;
         searchInput.disabled = !hasContent;
         searchButton.disabled = !hasContent;
         if (!hasContent) searchInput.value = '';
 
-        // Update slide counter text
         if (hasContent) {
-            // Display is 1-based for user-friendliness
             slideCounter.textContent = `View ${state.currentSlideIndex + 1} / ${state.totalSlides}`;
         } else {
             slideCounter.textContent = '';
         }
         
-        // Clear any highlights when navigating away manually
         const existingHighlight = binder.querySelector('.slot.highlight');
         if (existingHighlight) {
             existingHighlight.classList.remove('highlight');

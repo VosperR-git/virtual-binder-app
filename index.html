@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- The data-theme attribute will be added here by JS -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,6 +23,13 @@
                 <button type="submit" id="search-button" disabled>Find</button>
                 <span id="error-message" class="error-message">Not found!</span>
             </form>
+
+            <!-- ADDED: Theme Switcher Buttons -->
+            <div id="theme-switcher" class="theme-switcher">
+                <button data-theme="light" title="Light Theme">Light</button>
+                <button data-theme="dark" title="Dark Theme">Dark</button>
+                <button data-theme="retro" title="Retro Theme">Retro</button>
+            </div>
         </div>
 
         <!-- Virtual Binder Display -->
@@ -38,7 +45,12 @@
         </div>
     </div>
 
-    <!-- Link to the external JavaScript file (defer ensures it runs after HTML is parsed) -->
+    <!-- Footer -->
+    <footer class="page-footer">
+        Made with AI. If someone has already, or does create a human made similar web app please let me know so I can take this offline and promote theirs.
+    </footer>
+
+    <!-- Link to the external JavaScript file -->
     <script src="js/script.js" defer></script>
 
 </body>
