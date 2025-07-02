@@ -1,3 +1,5 @@
+/* --- START OF FILE style.css --- */
+
 /* css/style.css */
 
 /* --- FONT IMPORT --- */
@@ -134,9 +136,12 @@ button:disabled { background-color: var(--text-subtle); color: var(--primary-bg)
   text-align: center;
   background-color: var(--binder-bg);
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 #front-page .tracker h3 {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   text-transform: uppercase;
   font-size: 1.1rem;
 }
@@ -144,6 +149,29 @@ button:disabled { background-color: var(--text-subtle); color: var(--primary-bg)
 #front-page .tracker span {
   font-size: 1.6rem;
   font-weight: var(--font-weight-bold);
+}
+.progress-bar-container {
+    width: 100%;
+    height: 22px;
+    background-color: var(--primary-bg);
+    border-radius: 11px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--highlight-color);
+    border-radius: 9px;
+    transition: width 0.5s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-on-highlight);
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-bold);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 #front-page .api-credit { margin-top: auto; padding-top: 1rem; } #front-page .api-credit p { font-size: 0.8rem; color: var(--text-subtle); }
 #front-page .api-credit a { color: var(--accent-color); text-decoration: none; } #front-page .api-credit a:hover { text-decoration: underline; }
@@ -171,11 +199,11 @@ button:disabled { background-color: var(--text-subtle); color: var(--primary-bg)
 /* --- INFO MODAL STYLES (REDESIGNED) --- */
 .info-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease-out, visibility 0.25s; padding: 1rem; perspective: 1500px; }
 .info-modal-overlay.is-visible { opacity: 1; visibility: visible; transition-timing-function: ease-in; }
-.info-card { position: relative; width: 90%; max-width: 550px; background-image: linear-gradient(135deg, var(--gradient-start, #ccc), var(--gradient-end, #ccc)); animation: shimmer-gradient 8s ease-in-out infinite; background-size: 200% 200%; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.4s ease-out; }
+.info-card { position: relative; width: 90%; max-width: 550px; max-height: 90vh; background-image: linear-gradient(135deg, var(--gradient-start, #ccc), var(--gradient-end, #ccc)); animation: shimmer-gradient 8s ease-in-out infinite; background-size: 200% 200%; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.4s ease-out; }
 .info-modal-overlay.is-visible .info-card { transform: scale(1); }
-.info-card-image-container { position: relative; height: 45%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; transform-style: preserve-3d; }
+.info-card-image-container { position: relative; max-height: 40vh; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; transform-style: preserve-3d; }
 .info-card-image { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4)); }
-.info-card-details { background-color: var(--binder-bg); border-radius: 15px; box-shadow: var(--shadow); padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+.info-card-details { background-color: var(--binder-bg); border-radius: 15px; box-shadow: var(--shadow); padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; min-height: 0; }
 .shimmer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: inherit; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 3; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0)); }
 .info-card:hover .shimmer-overlay { opacity: 1; }
 .info-card-name { text-align: center; margin: 0; font-size: 2.5rem; text-transform: capitalize; }
@@ -241,4 +269,30 @@ button:disabled { background-color: var(--text-subtle); color: var(--primary-bg)
 
 .collection-buttons {
     flex: 0 0 auto;
+}
+
+@keyframes slot-hold-charge {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.08); box-shadow: 0 0 15px var(--accent-color); }
+}
+
+.slot-holding {
+  animation: slot-hold-charge 0.5s ease-out;
+}
+
+.slot {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@keyframes pokeball-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.5deg);
+  }
+}
+
+.catch-toggle-btn img {
+  animation: pokeball-float 2s ease-in-out infinite;
 }

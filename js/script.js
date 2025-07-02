@@ -1,3 +1,5 @@
+/* --- START OF FILE script.js --- */
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const generatorForm = document.getElementById('generator-form');
@@ -25,11 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     let longPressTimer = null;
     let longPressHandled = false;
+
+    let activeHoldSlot = null;
     
     // --- Constants ---
     const LONG_PRESS_DURATION = 500;
     const POKE_API_BASE_URL = 'https://pokeapi.co/api/v2/pokemon/';
-    const MAX_CONCURRENT = 50;
+    const MAX_CONCURRENT = 75;
     const TYPE_COLORS = { normal: '#A8A878', fire: '#F08030', water: '#6890F0', grass: '#78C850', electric: '#F8D030', ice: '#98D8D8', fighting: '#C03028', poison: '#A040A0', ground: '#E0C068', flying: '#A890F0', psychic: '#F85888', bug: '#A8B820', rock: '#B8A038', ghost: '#705898', dragon: '#7038F8', dark: '#705848', steel: '#B8B8D0', fairy: '#EE99AC' };
     const GENERATION_NAMES = { 'generation-i': 'Red/Blue/Yellow', 'generation-ii': 'Gold/Silver/Crystal', 'generation-iii': 'Ruby/Sapphire/Emerald', 'generation-iv': 'Diamond/Pearl/Platinum', 'generation-v': 'Black/White', 'generation-vi': 'X/Y', 'generation-vii': 'Sun/Moon', 'generation-viii': 'Sword/Shield', 'generation-ix': 'Scarlet/Violet' };
     
@@ -82,39 +86,60 @@ document.addEventListener('DOMContentLoaded', () => {
     prevButton.addEventListener('click', () => navigate(-1));
     nextButton.addEventListener('click', () => navigate(1));
 
-    binder.addEventListener('click', (e) => {
-        if (longPressHandled) {
-            e.preventDefault();
-            return;
-        }
-        const slot = e.target.closest('.slot.is-loaded');
-        if (slot) showInfoCard(slot.id.split('-')[1]);
-    });
+// SHORT press = CATCH
+binder.addEventListener('click', (e) => {
+    if (longPressHandled) {
+        e.preventDefault(); // prevent triggering after long press
+        return;
+    }
+    const slot = e.target.closest('.slot.is-loaded');
+    if (slot) {
+        const pokemonId = parseInt(slot.id.split('-')[1], 10);
+        toggleCatch(pokemonId);
+        slot.classList.toggle('caught', state.caughtPokemon.has(pokemonId));
+        // Optional: quick animation
+        slot.classList.add('catch-feedback');
+        slot.addEventListener('animationend', () => slot.classList.remove('catch-feedback'), { once: true });
+    }
+});
 
-    function handlePressStart(e) {
-        const slot = e.target.closest('.slot.is-loaded');
-        if (!slot) return;
-        longPressHandled = false;
-        longPressTimer = setTimeout(() => {
-            longPressHandled = true;
-            slot.classList.add('catch-feedback');
-            slot.addEventListener('animationend', () => slot.classList.remove('catch-feedback'), { once: true });
-            const pokemonId = parseInt(slot.id.split('-')[1], 10);
-            toggleCatch(pokemonId);
-            slot.classList.toggle('caught', state.caughtPokemon.has(pokemonId));
-        }, LONG_PRESS_DURATION);
+
+function handlePressStart(e) {
+  const slot = e.target.closest('.slot.is-loaded');
+  if (!slot) return;
+
+  longPressHandled = false;
+  activeHoldSlot = slot;
+  slot.classList.add('slot-holding');
+
+  longPressTimer = setTimeout(() => {
+    // Check if pointer is still on the same slot
+    if (activeHoldSlot && activeHoldSlot.matches(':hover')) {
+      longPressHandled = true;
+      showInfoCard(slot.id.split('-')[1]);
     }
+  }, LONG_PRESS_DURATION);
+}
     
-    function handlePressEnd() {
-        clearTimeout(longPressTimer);
-    }
+function handlePressEnd(e) {
+  clearTimeout(longPressTimer);
+
+  if (activeHoldSlot) {
+    activeHoldSlot.classList.remove('slot-holding');
+    activeHoldSlot.style.transform = '';
+    activeHoldSlot.style.boxShadow = '';
+    activeHoldSlot = null;
+  }
+}
+
     
-    binder.addEventListener('mousedown', handlePressStart);
-    binder.addEventListener('mouseup', handlePressEnd);
-    binder.addEventListener('mouseleave', handlePressEnd);
-    binder.addEventListener('touchstart', handlePressStart, { passive: true });
-    binder.addEventListener('touchend', handlePressEnd);
-    binder.addEventListener('touchcancel', handlePressEnd);
+binder.addEventListener('mousedown', handlePressStart);
+binder.addEventListener('mouseup', handlePressEnd);
+binder.addEventListener('mouseleave', handlePressEnd);
+binder.addEventListener('touchstart', handlePressStart, { passive: true });
+binder.addEventListener('touchend', handlePressEnd);
+binder.addEventListener('touchcancel', handlePressEnd);
+
 
     infoModal.addEventListener('click', (e) => {
         if (e.target === infoModal) hideInfoCard();
@@ -264,16 +289,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="tracker">
                     <h3>Collection Progress</h3>
                     <span id="pokemon-tracker">0 / 0 Pokémon</span>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                    </div>
                 </div>
 
                 <div class="instructions">
                     <h4>How to Use</h4>
                     <ul>
-                        <li><strong>Generate:</strong> Set your desired number of slots and click 'Generate'.</li>
-                        <li><strong>Catch:</strong> Long-press (or long-tap) on a card in the binder to catch it.</li>
-                        <li><strong>View Details:</strong> A short click on a card opens its detailed info.</li>
-                        <li><strong>Save:</strong> Your collection is automatically saved in your browser.</li>
-                        <li><strong>Share:</strong> Use the 'Copy Link' button to share your collection with friends!</li>
+                        <li><strong>Generate:</strong> Enter how many slots you want and click <em>Generate</em> to build your binder.</li>
+                        <li><strong>Catch:</strong> Click on a card to mark it as caught or uncaught.</li>
+                        <li><strong>View Details:</strong> Long-press (or long-tap) a card to see detailed information.</li>
+                        <li><strong>Save:</strong> Your progress is saved automatically in your browser.</li>
+                        <li><strong>Share:</strong> Click <em>Copy Link</em> to generate a shareable URL of your collection.</li>
                     </ul>
                 </div>
 
@@ -286,8 +314,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePokemonTracker() {
         const trackerSpan = document.getElementById('pokemon-tracker');
-        if (!trackerSpan) return;
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        if (!trackerSpan || !progressBarFill) return;
+    
         trackerSpan.textContent = `${state.caughtPokemon.size} / ${state.totalSlots} Caught`;
+    
+        const percentage = state.totalSlots > 0 ? (state.caughtPokemon.size / state.totalSlots) * 100 : 0;
+        progressBarFill.style.width = `${percentage}%`;
+    
+        // Only show text if the bar has some width
+        if (percentage > 5) {
+            progressBarFill.textContent = `${Math.round(percentage)}%`;
+        } else {
+            progressBarFill.textContent = '';
+        }
     }
 
     function createPage(pageNum) {
