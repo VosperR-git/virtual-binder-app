@@ -190,11 +190,11 @@ button:disabled { background-color: var(--text-subtle); color: var(--primary-bg)
 }
 .slot-number, .slot-name { position: relative; z-index: 2; text-transform: capitalize; text-align: center; }
 .slot-number { position: absolute; top: 5px; right: 8px; font-size: clamp(0.7rem, 2.5vw, 1rem); font-weight: var(--font-weight-bold); background-color: var(--primary-bg); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--border-color); }
-.slot-img { position: relative; z-index: 2; width: 90%; height: auto; object-fit: contain; flex-grow: 1; min-height: 0; margin-top: 1.5rem; image-rendering: crisp-edges; }
+.slot-img { position: relative; z-index: 2; width: 90%; height: auto; object-fit: contain; flex-grow: 1; min-height: 0; margin-top: 1.5rem; image-rendering: crisp-edges; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 .slot-name { font-size: clamp(0.6rem, 1.5vw, 0.9rem); width: 100%; padding: 5px 0; background-color: var(--border-color); flex-shrink: 0; margin-top: auto; }
 .slot-loading, .slot-error { font-size: 1.2rem; color: var(--text-subtle); margin: auto; } .slot-error { color: var(--accent-color); }
 .slot-type-icons { position: absolute; top: 5px; left: 5px; z-index: 2; display: flex; gap: 4px; }
-.type-icon-small { width: clamp(16px, 12%, 22px); height: auto; aspect-ratio: 1 / 1; border-radius: 50%; background-color: var(--primary-bg); padding: 2px; }
+.type-icon-small { width: clamp(16px, 12%, 22px); height: auto; aspect-ratio: 1 / 1; border-radius: 50%; background-color: var(--primary-bg); padding: 2px; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 
 /* --- INFO MODAL STYLES (REDESIGNED) --- */
 .info-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease-out, visibility 0.25s; padding: 1rem; perspective: 1500px; }
@@ -202,7 +202,7 @@ button:disabled { background-color: var(--text-subtle); color: var(--primary-bg)
 .info-card { position: relative; width: 90%; max-width: 550px; max-height: 90vh; background-image: linear-gradient(135deg, var(--gradient-start, #ccc), var(--gradient-end, #ccc)); animation: shimmer-gradient 8s ease-in-out infinite; background-size: 200% 200%; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.4s ease-out; }
 .info-modal-overlay.is-visible .info-card { transform: scale(1); }
 .info-card-image-container { position: relative; max-height: 40vh; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; transform-style: preserve-3d; }
-.info-card-image { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4)); }
+.info-card-image { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4)); pointer-events: none; user-select: none; -webkit-user-drag: none; }
 .info-card-details { background-color: var(--binder-bg); border-radius: 15px; box-shadow: var(--shadow); padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; min-height: 0; }
 .shimmer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: inherit; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 3; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0)); }
 .info-card:hover .shimmer-overlay { opacity: 1; }
