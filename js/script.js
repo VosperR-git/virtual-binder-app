@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const binder = document.getElementById('binder');
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
+    const homeButton = document.getElementById('home-button'); 
     const slideCounter = document.getElementById('slide-counter');
     const errorMessage = document.getElementById('error-message');
     const searchForm = document.getElementById('search-form');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const infoCard = document.getElementById('info-card');
     const collectionLinkInput = document.getElementById('collection-link');
     const copyLinkBtn = document.getElementById('copy-link-btn');
+    const autocompleteSuggestions = document.getElementById('autocomplete-suggestions'); // --- NEW ---
 
     // --- App State ---
     let state = {
@@ -27,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     let longPressTimer = null;
     let longPressHandled = false;
-
     let activeHoldSlot = null;
+    let activeSuggestionIndex = -1; // --- NEW ---
     
     // --- Constants ---
     const LONG_PRESS_DURATION = 500;
@@ -82,9 +84,20 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         searchForSlot();
     });
-    searchInput.addEventListener('input', () => errorMessage.style.display = 'none');
+
+    // --- NEW/MODIFIED: Autocomplete and Search Input Listeners ---
+    searchInput.addEventListener('input', handleAutocomplete);
+    searchInput.addEventListener('keydown', handleAutocompleteKeys);
+    searchInput.addEventListener('blur', () => {
+        // Delay hiding to allow click on suggestion to register
+        setTimeout(() => hideAutocomplete(), 150);
+    });
+
     prevButton.addEventListener('click', () => navigate(-1));
     nextButton.addEventListener('click', () => navigate(1));
+    homeButton.addEventListener('click', () => navigateToHome());
+
+    document.addEventListener('keydown', handleKeyPress);
 
 // SHORT press = CATCH
 binder.addEventListener('click', (e) => {
@@ -113,8 +126,7 @@ function handlePressStart(e) {
   slot.classList.add('slot-holding');
 
   longPressTimer = setTimeout(() => {
-    // Check if pointer is still on the same slot
-    if (activeHoldSlot && activeHoldSlot.matches(':hover')) {
+    if (activeHoldSlot) {
       longPressHandled = true;
       showInfoCard(slot.id.split('-')[1]);
     }
@@ -146,6 +158,91 @@ binder.addEventListener('touchcancel', handlePressEnd);
     });
 
     copyLinkBtn.addEventListener('click', generateAndCopyShareLink);
+
+    // --- NEW: Autocomplete Functions ---
+    function handleAutocomplete() {
+        errorMessage.style.display = 'none';
+        const query = searchInput.value.trim().toLowerCase();
+
+        if (query.length < 1) {
+            hideAutocomplete();
+            return;
+        }
+
+        // --- MODIFIED LOGIC ---
+        // Instead of filtering all names, we'll build a list of suggestions
+        // that are valid for the current binder size.
+        const suggestions = [];
+        for (const [name, id] of pokemonNameIdMap.entries()) {
+            // Check three things:
+            // 1. The ID is within the generated number of slots.
+            // 2. The name starts with the user's query.
+            // 3. We haven't already found 10 suggestions (for performance).
+            if (id <= state.totalSlots && name.startsWith(query)) {
+                suggestions.push(name);
+            }
+            
+            if (suggestions.length >= 10) {
+                break; // Stop searching once we have enough results
+            }
+        }
+
+        if (suggestions.length > 0) {
+            showAutocomplete(suggestions);
+        } else {
+            hideAutocomplete();
+        }
+    }
+
+    function showAutocomplete(suggestions) {
+        autocompleteSuggestions.innerHTML = '';
+        suggestions.forEach((name, index) => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = name;
+            item.addEventListener('click', () => {
+                searchInput.value = name;
+                hideAutocomplete();
+                searchForSlot();
+            });
+            autocompleteSuggestions.appendChild(item);
+        });
+        autocompleteSuggestions.style.display = 'block';
+        activeSuggestionIndex = -1;
+    }
+
+    function hideAutocomplete() {
+        autocompleteSuggestions.innerHTML = '';
+        autocompleteSuggestions.style.display = 'none';
+    }
+
+    function handleAutocompleteKeys(e) {
+        const items = autocompleteSuggestions.querySelectorAll('.suggestion-item');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+            updateActiveSuggestion(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+            updateActiveSuggestion(items);
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (activeSuggestionIndex > -1) {
+                e.preventDefault();
+                items[activeSuggestionIndex].click();
+            }
+        }
+    }
+
+    function updateActiveSuggestion(items) {
+        items.forEach(item => item.classList.remove('active'));
+        if (activeSuggestionIndex > -1) {
+            items[activeSuggestionIndex].classList.add('active');
+            items[activeSuggestionIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
 
     // --- Collection Management (URL Sharing) ---
     function generateAndCopyShareLink() {
@@ -322,7 +419,6 @@ binder.addEventListener('touchcancel', handlePressEnd);
         const percentage = state.totalSlots > 0 ? (state.caughtPokemon.size / state.totalSlots) * 100 : 0;
         progressBarFill.style.width = `${percentage}%`;
     
-        // Only show text if the bar has some width
         if (percentage > 5) {
             progressBarFill.textContent = `${Math.round(percentage)}%`;
         } else {
@@ -432,7 +528,7 @@ binder.addEventListener('touchcancel', handlePressEnd);
         const toRoman = num => 'I'.repeat(num).replace(/IIII/g, 'IV').replace(/VIV/g, 'IX').replace(/IIIII/g, 'V').replace(/VV/g, 'X');
         const generationName = GENERATION_NAMES[details.generation.name] || details.generation.name.replace('generation-', '').toUpperCase();
         const generationRoman = toRoman(details.generation.url.split('/')[6]);
-        const catchButtonImgSrc = state.caughtPokemon.has(details.id) ? 'pokeball-caught.png' : 'pokeball-empty.png';
+        const catchButtonImgSrc = state.caughtPokemon.has(details.id) ? 'images/pokeball-caught.png' : 'images/pokeball-empty.png';
         infoCard.innerHTML = `
             <div class="shimmer-overlay"></div>
             <div class="info-card-image-container"><img src="${details.imageUrl}" alt="${details.name}" class="info-card-image"></div>
@@ -458,7 +554,7 @@ binder.addEventListener('touchcancel', handlePressEnd);
             toggleCatch(id);
             const isNowCaught = state.caughtPokemon.has(id);
             
-            img.src = isNowCaught ? 'pokeball-caught.png' : 'pokeball-empty.png';
+            img.src = isNowCaught ? 'images/pokeball-caught.png' : 'images/pokeball-empty.png';
             const binderSlot = document.getElementById(`slot-${id}`);
             if (binderSlot) binderSlot.classList.toggle('caught', isNowCaught);
         });
@@ -527,15 +623,50 @@ binder.addEventListener('touchcancel', handlePressEnd);
             queueDataForPreload();
         }
     }
+
+    function navigateToHome() {
+        if (state.currentSlideIndex !== 0) {
+            state.currentSlideIndex = 0;
+            updateUI();
+            queueDataForPreload();
+        }
+    }
     
+    function handleKeyPress(e) {
+    // First, check if the user is currently focused on an input field.
+    // If they are, we don't want to change pages.
+    if (e.target.tagName === 'INPUT') {
+        return;
+    }
+
+    // Now, check which key was pressed.
+    if (e.key === 'ArrowLeft') {
+        // Prevent default browser action for arrow keys, like scrolling.
+        e.preventDefault();
+        // Trigger the 'Previous' button's action.
+        navigate(-1);
+    } else if (e.key === 'ArrowRight') {
+        // Prevent default browser action.
+        e.preventDefault();
+        // Trigger the 'Next' button's action.
+        navigate(1);
+    }
+}
+
     function searchForSlot() {
+        hideAutocomplete(); // --- NEW ---
         const query = searchInput.value.trim(); if (!query) return;
         let slotNumber = -1;
         const numId = parseInt(query, 10);
         if (!isNaN(numId) && numId > 0) slotNumber = numId;
         else { const nameId = pokemonNameIdMap.get(query.toLowerCase()); if (nameId) slotNumber = nameId; }
-        if (slotNumber > 0 && slotNumber <= state.totalSlots) navigateToSlot(slotNumber);
-        else errorMessage.style.display = 'inline';
+        if (slotNumber > 0 && slotNumber <= state.totalSlots) {
+            navigateToSlot(slotNumber);
+            errorMessage.style.display = 'none'; // --- MODIFIED ---
+        }
+        else {
+            errorMessage.style.display = 'inline';
+        }
     }
 
     function navigateToSlot(slotNumber) {
@@ -567,6 +698,7 @@ binder.addEventListener('touchcancel', handlePressEnd);
         errorMessage.style.display = 'none';
         binder.querySelectorAll('.slide').forEach((slide, index) => slide.classList.toggle('active', index === state.currentSlideIndex));
         prevButton.disabled = state.currentSlideIndex === 0;
+        homeButton.disabled = state.currentSlideIndex === 0;
         nextButton.disabled = state.currentSlideIndex >= state.totalSlides - 1;
         const hasContent = state.totalSlots > 0;
         searchInput.disabled = !hasContent;
@@ -586,3 +718,4 @@ binder.addEventListener('touchcancel', handlePressEnd);
     generateBinder(parseInt(totalSlotsInput.value, 10));
     startQueueManager();
 });
+

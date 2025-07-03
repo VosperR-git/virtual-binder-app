@@ -1,16 +1,9 @@
-
-
 <!DOCTYPE html>
 <html lang="en"> <!-- The data-theme attribute will be added here by JS -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Binder</title>
-
-    <!-- Favicon Links -->
-    <link rel="icon" type="image/png" href="images/favicon.png">
-    <link rel="apple-touch-icon" href="images/favicon.png">
-
     <!-- lz-string for URL compression -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <!-- Link to the external stylesheet -->
@@ -28,7 +21,10 @@
             </form>
             <form id="search-form" class="control-group">
                 <label for="search-input" id="search-slot-label">Search Slot:</label>
-                <input type="search" id="search-input" placeholder="e.g., Pikachu or 25" disabled>
+                <div class="search-wrapper">
+                    <input type="search" id="search-input" placeholder="e.g., Pikachu or 25" disabled>
+                    <div id="autocomplete-suggestions"></div>
+                </div>
                 <button type="submit" id="search-button" disabled>Find</button>
                 <span id="error-message" class="error-message">Not found!</span>
             </form>
@@ -55,14 +51,20 @@
             <!-- Slides will be generated here by JavaScript -->
         </div>
 
-        <!-- Sticky Bottom Bar -->
+       <!-- Sticky Bottom Bar -->
         <div class="bottom-bar">
-            <!-- Navigation Controls -->
+            <!-- Page turn navigation -->
             <div class="navigation">
                 <button id="prev-button" disabled>← Previous</button>
                 <div id="slide-counter" class="slide-counter"></div>
                 <button id="next-button" disabled>Next →</button>
             </div>
+
+            <!-- Home button container -->
+            <div class="home-button-container">
+                 <button id="home-button" type="button">Home</button>
+            </div>
+            
              <!-- Footer -->
             <footer class="page-footer">
                 Made with AI assistance. If someone has already, or does create a human made similar web app please let me know so I can take this offline and promote theirs.
