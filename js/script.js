@@ -400,11 +400,9 @@ binder.addEventListener('touchcancel', handlePressEnd);
                         <li><strong>Save:</strong> Your progress is saved automatically in your browser.</li>
                         <li><strong>Share:</strong> Click <em>Copy Link</em> to generate a shareable URL of your collection.</li>
                     </ul>
+                    
                 </div>
 
-                <div class="api-credit">
-                    <p>This application proudly uses the <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> for all Pokémon data.</p>
-                </div>
             </div>`;
         return page;
     }
