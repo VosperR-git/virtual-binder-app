@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "virtual-binder-app",
   "version": "1.0.0",
@@ -12,4 +13,20 @@
   "devDependencies": {
     "http-server": "^14.1.1"
   }
+=======
+{
+  "name": "virtual-binder-app",
+  "version": "1.0.0",
+  "description": "A responsive virtual binder app that mimics a real-world book with searchable, dynamic content.",
+  "main": "js/script.js",
+  "scripts": {
+    "start": "http-server . -o",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+>>>>>>> dd010e94ccf47fbb878a4393ca95cff955e2d6b5
 }
