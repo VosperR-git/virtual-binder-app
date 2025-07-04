@@ -1,4 +1,3 @@
-
 /* --- START OF FILE script.js --- */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,11 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const infoCard = document.getElementById('info-card');
     const collectionLinkInput = document.getElementById('collection-link');
     const copyLinkBtn = document.getElementById('copy-link-btn');
-    const autocompleteSuggestions = document.getElementById('autocomplete-suggestions');
-    const randomUncaughtBtn = document.getElementById('random-uncaught-btn');
-    const settingsButton = document.getElementById('settings-button');
-    const settingsDropdown = document.getElementById('settings-dropdown');
-    const volumeSlider = document.getElementById('volume-slider');
+    const autocompleteSuggestions = document.getElementById('autocomplete-suggestions'); // --- NEW ---
 
     // --- App State ---
     let state = {
@@ -31,18 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
         slotsPerPage: 16,
         totalAvailablePokemon: 0,
         caughtPokemon: new Set(),
-        volume: 1.0, // Default slider position
     };
     let longPressTimer = null;
     let longPressHandled = false;
     let activeHoldSlot = null;
-    let activeSuggestionIndex = -1;
+    let activeSuggestionIndex = -1; // --- NEW ---
     
     // --- Constants ---
     const LONG_PRESS_DURATION = 500;
     const POKE_API_BASE_URL = 'https://pokeapi.co/api/v2/pokemon/';
     const MAX_CONCURRENT = 75;
-    const MAX_CRY_VOLUME = 0.05; // Master volume for cries, scales the slider value
     const TYPE_COLORS = { normal: '#A8A878', fire: '#F08030', water: '#6890F0', grass: '#78C850', electric: '#F8D030', ice: '#98D8D8', fighting: '#C03028', poison: '#A040A0', ground: '#E0C068', flying: '#A890F0', psychic: '#F85888', bug: '#A8B820', rock: '#B8A038', ghost: '#705898', dragon: '#7038F8', dark: '#705848', steel: '#B8B8D0', fairy: '#EE99AC' };
     const GENERATION_NAMES = { 'generation-i': 'Red/Blue/Yellow', 'generation-ii': 'Gold/Silver/Crystal', 'generation-iii': 'Ruby/Sapphire/Emerald', 'generation-iv': 'Diamond/Pearl/Platinum', 'generation-v': 'Black/White', 'generation-vi': 'X/Y', 'generation-vii': 'Sun/Moon', 'generation-viii': 'Sword/Shield', 'generation-ix': 'Scarlet/Violet' };
     
@@ -81,31 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
             applyTheme(target.dataset.theme);
         }
     });
-
-    // --- SETTINGS ---
-    function initSettings() {
-        const savedVolume = localStorage.getItem('cryVolume');
-        if (savedVolume !== null) {
-            state.volume = parseFloat(savedVolume);
-        }
-        volumeSlider.value = state.volume;
-
-        settingsButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            settingsDropdown.classList.toggle('is-visible');
-        });
-
-        volumeSlider.addEventListener('input', () => {
-            state.volume = volumeSlider.value;
-            localStorage.setItem('cryVolume', state.volume);
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!settingsDropdown.contains(e.target) && e.target !== settingsButton) {
-                settingsDropdown.classList.remove('is-visible');
-            }
-        });
-    }
 
     // --- Event Listeners ---
     generatorForm.addEventListener('submit', (e) => {
@@ -189,8 +157,6 @@ binder.addEventListener('touchcancel', handlePressEnd);
         if (e.target === infoModal) hideInfoCard();
     });
 
-    randomUncaughtBtn.addEventListener('click', findAndShowRandomUncaught); 
-
     copyLinkBtn.addEventListener('click', generateAndCopyShareLink);
 
     // --- NEW: Autocomplete Functions ---
@@ -203,15 +169,21 @@ binder.addEventListener('touchcancel', handlePressEnd);
             return;
         }
 
+        // --- MODIFIED LOGIC ---
+        // Instead of filtering all names, we'll build a list of suggestions
+        // that are valid for the current binder size.
         const suggestions = [];
         for (const [name, id] of pokemonNameIdMap.entries()) {
-            const displayName = name.replace(/-/g, ' ');
-            if (id <= state.totalSlots && displayName.startsWith(query)) {
-                suggestions.push(name); // Push original name to suggestions
+            // Check three things:
+            // 1. The ID is within the generated number of slots.
+            // 2. The name starts with the user's query.
+            // 3. We haven't already found 10 suggestions (for performance).
+            if (id <= state.totalSlots && name.startsWith(query)) {
+                suggestions.push(name);
             }
             
             if (suggestions.length >= 10) {
-                break;
+                break; // Stop searching once we have enough results
             }
         }
 
@@ -227,10 +199,9 @@ binder.addEventListener('touchcancel', handlePressEnd);
         suggestions.forEach((name, index) => {
             const item = document.createElement('div');
             item.className = 'suggestion-item';
-            const displayName = name.replace(/-/g, ' ');
-            item.textContent = displayName;
+            item.textContent = name;
             item.addEventListener('click', () => {
-                searchInput.value = displayName; // Put display name in the search box
+                searchInput.value = name;
                 hideAutocomplete();
                 searchForSlot();
             });
@@ -352,27 +323,6 @@ binder.addEventListener('touchcancel', handlePressEnd);
         }
     }
 
-    function findAndShowRandomUncaught() {
-    // Create an array of all possible Pokémon IDs within the binder's range
-    const allPossibleIds = Array.from({ length: state.totalSlots }, (_, i) => i + 1);
-
-    // Filter this array to get only the IDs of Pokémon that have NOT been caught
-    const uncaughtIds = allPossibleIds.filter(id => !state.caughtPokemon.has(id));
-
-    // If there are no uncaught Pokémon, do nothing. The button should already be disabled.
-    if (uncaughtIds.length === 0) {
-        console.log("Congratulations! You've caught them all!");
-        return;
-    }
-
-    // Pick a random Pokémon ID from the uncaught list
-    const randomIndex = Math.floor(Math.random() * uncaughtIds.length);
-    const randomPokemonId = uncaughtIds[randomIndex];
-
-    // Use the existing function to show its info card
-    showInfoCard(randomPokemonId);
-}
-
     // --- Core Functions ---
     async function fetchAllPokemonNames() {
         if (pokemonNameIdMap.size > 0) return;
@@ -444,16 +394,17 @@ binder.addEventListener('touchcancel', handlePressEnd);
                 <div class="instructions">
                     <h4>How to Use</h4>
                     <ul>
-                        <li><strong>Generate:</strong> Enter slot count and click <em>Generate</em>.</li>
-                        <li><strong>Catch:</strong> Click cards to mark caught/uncaught.</li>
-                        <li><strong>Details:</strong> Long-press cards for info.</li>
-                        <li><strong>Auto-save:</strong> Progress saves automatically.</li>
-                        <li><strong>Share:</strong> Use <em>Copy Link</em> to share.</li>
+                        <li><strong>Generate:</strong> Enter how many slots you want and click <em>Generate</em> to build your binder.</li>
+                        <li><strong>Catch:</strong> Click on a card to mark it as caught or uncaught.</li>
+                        <li><strong>View Details:</strong> Long-press (or long-tap) a card to see detailed information.</li>
+                        <li><strong>Save:</strong> Your progress is saved automatically in your browser.</li>
+                        <li><strong>Share:</strong> Click <em>Copy Link</em> to generate a shareable URL of your collection.</li>
                     </ul>
                     
-                    <div class="attribution" style="margin-top: 2rem; font-size: 0.7rem; color: var(--text-subtle); text-align: center; line-height: 1.4;">
-                        Made with AI assistance. If you know of a similar human-made web app, please let me know so I can promote it instead.
-                    </div>
+                </div>
+
+                <div class="api-credit">
+                    This application proudly uses the <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> for all Pokémon data.
                 </div>
 
             </div>`;
@@ -557,9 +508,8 @@ binder.addEventListener('touchcancel', handlePressEnd);
             slotElement.innerHTML = `<span class="slot-number">${pokemonData.id}</span><div class="slot-error">N/A</div>`;
             return;
         }
-        const displayName = pokemonData.name.replace(/-/g, ' ');
         const typeIconsHTML = pokemonData.types.map(type => `<img src="https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png" class="type-icon-small" alt="${type}" title="${type}">`).join('');
-        slotElement.innerHTML = `<div class="slot-type-icons">${typeIconsHTML}</div><span class="slot-number">${pokemonData.id}</span><img src="${pokemonData.imageUrl}" alt="${displayName}" class="slot-img" loading="lazy"><span class="slot-name">${displayName}</span>`;
+        slotElement.innerHTML = `<div class="slot-type-icons">${typeIconsHTML}</div><span class="slot-number">${pokemonData.id}</span><img src="${pokemonData.imageUrl}" alt="${pokemonData.name}" class="slot-img" loading="lazy"><span class="slot-name">${pokemonData.name}</span>`;
         const startColor = TYPE_COLORS[pokemonData.types[0]] || '#ccc';
         const endColor = pokemonData.types.length > 1 ? TYPE_COLORS[pokemonData.types[1]] : lightenColor(startColor, 40);
         slotElement.style.setProperty('--gradient-start', startColor);
@@ -581,30 +531,16 @@ binder.addEventListener('touchcancel', handlePressEnd);
         const generationName = GENERATION_NAMES[details.generation.name] || details.generation.name.replace('generation-', '').toUpperCase();
         const generationRoman = toRoman(details.generation.url.split('/')[6]);
         const catchButtonImgSrc = state.caughtPokemon.has(details.id) ? 'images/pokeball-caught.png' : 'images/pokeball-empty.png';
-        const displayName = details.name.replace(/-/g, ' ');
         infoCard.innerHTML = `
             <div class="shimmer-overlay"></div>
-            <div class="info-card-image-container"><img src="${details.imageUrl}" alt="${displayName}" class="info-card-image"></div>
+            <div class="info-card-image-container"><img src="${details.imageUrl}" alt="${details.name}" class="info-card-image"></div>
             <div class="info-card-details">
-                <h2 class="info-card-name">
-                    <a href="https://pokemondb.net/pokedex/${details.name.toLowerCase()}" target="_blank" rel="noopener noreferrer" title="View ${displayName} on PokémonDB">
-                        ${displayName}
-                    </a>
-                </h2>
+                <h2 class="info-card-name">${details.name}</h2>
                 <button class="catch-toggle-btn" data-id="${details.id}"><img src="${catchButtonImgSrc}" alt="Catch status"></button>
                 <div class="info-card-types">${details.types.map(type => `<span class="type-badge type-${type}">${type}</span>`).join('')}</div>
                 <div class="info-card-stats">${details.stats.map(stat => `<div class="stat-item"><span class="stat-name">${stat.name.replace('special-', 'sp. ')}</span><div class="stat-bar"><div class="stat-bar-fill" style="width: ${Math.min(100, (stat.base_stat / 160) * 100)}%;"></div></div><span class="stat-value">${stat.base_stat}</span></div>`).join('')}</div>
                 <div class="info-card-footer">Generation ${generationRoman} (${generationName})</div>
             </div>`;
-        
-        const imageContainer = infoCard.querySelector('.info-card-image-container');
-        if (details.cryUrl) {
-            imageContainer.addEventListener('click', () => {
-                const cryAudio = new Audio(details.cryUrl);
-                cryAudio.volume = state.volume * MAX_CRY_VOLUME;
-                cryAudio.play().catch(e => console.error("Audio playback failed:", e));
-            });
-        }
         
         const catchBtn = infoCard.querySelector('.catch-toggle-btn');
         catchBtn.addEventListener('click', (e) => {
@@ -672,7 +608,6 @@ binder.addEventListener('touchcancel', handlePressEnd);
                 types: p_data.types.map(t => t.type.name),
                 stats: p_data.stats.map(s => ({ name: s.stat.name, base_stat: s.base_stat })),
                 generation: s_data.generation,
-                cryUrl: p_data.cries.latest,
             };
             pokemonDetailCache.set(pokemonId, details);
             return details;
@@ -721,15 +656,15 @@ binder.addEventListener('touchcancel', handlePressEnd);
 }
 
     function searchForSlot() {
-        hideAutocomplete();
+        hideAutocomplete(); // --- NEW ---
         const query = searchInput.value.trim(); if (!query) return;
         let slotNumber = -1;
         const numId = parseInt(query, 10);
         if (!isNaN(numId) && numId > 0) slotNumber = numId;
-        else { const nameId = pokemonNameIdMap.get(query.toLowerCase().replace(/ /g, '-')); if (nameId) slotNumber = nameId; }
+        else { const nameId = pokemonNameIdMap.get(query.toLowerCase()); if (nameId) slotNumber = nameId; }
         if (slotNumber > 0 && slotNumber <= state.totalSlots) {
             navigateToSlot(slotNumber);
-            errorMessage.style.display = 'none';
+            errorMessage.style.display = 'none'; // --- MODIFIED ---
         }
         else {
             errorMessage.style.display = 'inline';
@@ -782,7 +717,7 @@ binder.addEventListener('touchcancel', handlePressEnd);
     }
 
     initTheme();
-    initSettings();
     generateBinder(parseInt(totalSlotsInput.value, 10));
     startQueueManager();
 });
+
