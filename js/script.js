@@ -394,11 +394,10 @@ binder.addEventListener('touchcancel', handlePressEnd);
                 <div class="instructions">
                     <h4>How to Use</h4>
                     <ul>
-                        <li><strong>Generate:</strong> Enter how many slots you want and click <em>Generate</em> to build your binder.</li>
                         <li><strong>Catch:</strong> Click on a card to mark it as caught or uncaught.</li>
-                        <li><strong>View Details:</strong> Long-press (or long-tap) a card to see detailed information.</li>
-                        <li><strong>Save:</strong> Your progress is saved automatically in your browser.</li>
                         <li><strong>Share:</strong> Click <em>Copy Link</em> to generate a shareable URL of your collection.</li>
+                        <li><strong>Save:</strong> Save a copy of your Shareable link somewhere safe, as that IS YOUR SAVE FILE.</li>                   
+                        <li><strong>Info:</strong> Your progress is saved automatically in your browser.</li>
                     </ul>
                     
                 </div>
